@@ -4,7 +4,7 @@ import Home from "./Pages/Home";
 import Cart from "./Pages/Cart";
 import Checkout from "./Pages/Checkout";
 import OrderTracking from "./Pages/OrderTracking";
-import ProductDetail from "./components-home/ProductDetail";
+import ProductDetail from "./components/ProductDetail"
 
 const App = () => {
   const [cart, setCart] = useState(() => {
