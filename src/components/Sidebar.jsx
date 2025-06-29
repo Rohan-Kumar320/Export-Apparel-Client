@@ -5,7 +5,7 @@ import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { FaHome, FaList, FaTimes } from "react-icons/fa";
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const SideBar = ({ isOpen, toggleSidebar }) => {
   const [categories, setCategories] = useState([]);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [error, setError] = useState("");
@@ -83,4 +83,4 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
-export default Sidebar;
+export default SideBar;
