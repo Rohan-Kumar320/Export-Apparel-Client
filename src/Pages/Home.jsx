@@ -4,11 +4,11 @@ import { useLocation } from "react-router-dom";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import Navbar from "../components-home/Navbar";
-import Sidebar from "../components-home/SideBar";
 import HeroSlider from "../components-home/HeroSlider";
 import Shimmer from "../components-home/Shimmer";
 import ProductCard from "../components-home/ProductCard";
 import Footer from "../components-home/Footer";
+import Sidebar from "../components-home/SideBar";
 
 const Home = ({ addToCart, cart }) => {
   const [products, setProducts] = useState([]);
