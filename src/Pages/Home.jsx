@@ -1,136 +1,96 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
-import { motion } from "framer-motion";
-import { toast } from "react-toastify";
+import Navbar from "../components/Navbar";
+import Sidebar from "../components/SideBar";
+import Shimmer from "../components/Shimmer";
+import ProductCard from "../components/ProductCard";
+import Footer from "../components/Footer";
+import HeroSlider from "../components/HeroSlider";
+
 
 const Home = ({ addToCart, cart }) => {
   const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      setError("");
-      console.log("Fetching products from Firestore...");
+    const fetchData = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "products"));
-        const productsList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const productsSnapshot = await getDocs(collection(db, "products"));
+        const productsList = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setProducts(productsList);
-        console.log("Products fetched:", productsList);
-        toast.success("Products loaded successfully!", { position: "bottom-right" });
+
+        const categoriesSnapshot = await getDocs(collection(db, "categories"));
+        const categoriesList = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCategories(categoriesList);
+
+        // Check for category query param
+        const params = new URLSearchParams(location.search);
+        const category = params.get("category");
+        if (category) setFilterCategory(category);
+
+        setLoading(false);
       } catch (err) {
-        console.error("Products fetch error:", err);
-        if (err.code === "permission-denied") {
-          setError(
-            "Permission denied. Please ensure you have access to view products or contact support."
-          );
-          toast.error(
-            "Permission denied. Please check Firestore permissions or contact support.",
-            { position: "bottom-right" }
-          );
-        } else {
-          setError("Failed to load products: " + err.message);
-          toast.error("Failed to load products: " + err.message, {
-            position: "bottom-right",
-          });
-        }
-      } finally {
-        setIsLoading(false);
+        setError("Failed to load data: " + err.message);
+        setLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
+    fetchData();
+  }, [location.search]);
 
-  const handleAddToCart = (product) => {
-    if (typeof addToCart === "function") {
-      addToCart(product);
-      toast.success(`${product.name} added to cart!`, { position: "bottom-right" });
-      console.log("Added to cart:", product);
-    } else {
-      toast.error("Unable to add to cart. Please try again.", {
-        position: "bottom-right",
-      });
-      console.error("addToCart is not a function");
-    }
-  };
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (filterCategory === "" || product.category === filterCategory)
+  );
 
   return (
-    <motion.div
-      initial={{ x: "100vw" }}
-      animate={{ x: 0 }}
-      exit={{ x: "-100vw" }}
-      transition={{ type: "spring", stiffness: 120, damping: 20 }}
-      className="min-h-screen bg-gray-100 flex justify-center"
-    >
-      <div className="container mx-auto p-4 sm:p-8 max-w-4xl">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
-            Export Apparels
-          </h2>
-          <div className="flex gap-4">
-            <button
-              onClick={() => navigate("/cart")}
-              className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base"
+    <div className="min-h-screen bg-gray-100">
+      <Navbar cart={cart} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <div className="container mx-auto p-4 sm:p-8">
+        <HeroSlider />
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Shop Our Collection</h2>
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full sm:w-64 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+            />
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="w-full sm:w-48 p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
             >
-              Cart ({cart.length})
-            </button>
-            <button
-              onClick={() => navigate("/track-order")}
-              className="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition text-sm sm:text-base"
-            >
-              Track Order
-            </button>
+              <option value="">All Categories</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
           </div>
         </div>
         {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
-        {isLoading && (
-          <p className="text-gray-600 text-sm text-center">Loading products...</p>
+        {loading ? (
+          <Shimmer />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredProducts.map(product => (
+              <ProductCard key={product.id} product={product} addToCart={addToCart} />
+            ))}
+          </div>
         )}
-        {products.length === 0 && !isLoading && !error && (
-          <p className="text-gray-600 text-sm text-center">No products available.</p>
-        )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white p-4 rounded-lg shadow-md border border-dashed border-gray-300"
-            >
-              <img
-                src={
-                  product.imageUrls?.[0] ||
-                  product.imageUrl ||
-                  "https://via.placeholder.com/400"
-                }
-                alt={product.name}
-                className="w-full h-48 object-cover rounded mb-4"
-              />
-              <h3 className="text-lg font-semibold text-gray-800">
-                {product.name || "Unnamed Product"}
-              </h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Rs. {(product.price || 0).toFixed(2)}
-              </p>
-              <button
-                onClick={() => handleAddToCart(product)}
-                className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition text-sm"
-              >
-                Add to Cart
-              </button>
-            </motion.div>
-          ))}
-        </div>
       </div>
-    </motion.div>
+      <Footer />
+    </div>
   );
 };
 
