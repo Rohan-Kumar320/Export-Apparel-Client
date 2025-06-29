@@ -1,11 +1,10 @@
-// src/components/Sidebar.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { FaHome, FaList, FaTimes } from "react-icons/fa";
 
-const SideBar = ({ isOpen, toggleSidebar }) => {
+const SideBarClient = ({ isOpen, toggleSidebar }) => {
   const [categories, setCategories] = useState([]);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [error, setError] = useState("");
@@ -83,4 +82,4 @@ const SideBar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
-export default SideBar;
+export default SideBarClient;

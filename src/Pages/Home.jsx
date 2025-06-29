@@ -7,6 +7,7 @@ import Shimmer from "../components/Shimmer";
 import ProductCard from "../components/ProductCard";
 import Footer from "../components/Footer";
 import HeroSlider from "../components/HeroSlider";
+import SideBarClient from "../components/SideBarClient";
 // import SideBar from "../components/SideBar";
 
 
@@ -53,6 +54,7 @@ const Home = ({ addToCart, cart }) => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar cart={cart} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <SideBarClient isOpen={isSidebarOpen} toggleSidebar={()=>setIsSidebarOpen(!isSidebarOpen)}/>
       {/* <SideBar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} /> */}
       <div className="container mx-auto p-4 sm:p-8">
         <HeroSlider />
